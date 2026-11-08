@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -eu
+
+export APP_ENV=testing
+export DB_CONNECTION=sqlite
+export DB_DATABASE=:memory:
+export DB_URL=
+export SESSION_DRIVER=array
+export CACHE_STORE=array
+export MAIL_MAILER=array
+export QUEUE_CONNECTION=sync
+
+exec ./vendor/bin/phpunit "$@"
