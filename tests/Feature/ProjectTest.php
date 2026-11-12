@@ -603,14 +603,15 @@ class ProjectTest extends TestCase
         $response->assertNotFound();
     }
 
-    public function test_project_creation_is_rolled_back_if_budget_creation_fails(): void
-    {
-        $company = Company::create([
-            'name' => 'Empresa A',
-            'email' => 'empresa-a@example.com',
-        ]);
+public function test_project_creation_is_rolled_back_if_budget_creation_fails(): void
+{
+    $company = Company::create([
+        'name' => 'Empresa A',
+        'email' => 'empresa-a@example.com',
+    ]);
 
-        // Provocamos un error al intentar guardar un presupuesto.
+    // Simulamos un error al insertar un presupuesto.
+    if (DB::getDriverName() === 'sqlite') {
         DB::statement("
             CREATE TRIGGER fail_budget_insert
             BEFORE INSERT ON budgets
@@ -618,34 +619,43 @@ class ProjectTest extends TestCase
                 SELECT RAISE(ABORT, 'Simulated budget failure');
             END
         ");
+    } elseif (DB::getDriverName() === 'mysql') {
+        DB::statement("
+            CREATE TRIGGER fail_budget_insert
+            BEFORE INSERT ON budgets
+            FOR EACH ROW
+            SIGNAL SQLSTATE '45000'
+            SET MESSAGE_TEXT = 'Simulated budget failure'
+        ");
+    }
+
+    try {
+        $data = new CreateProjectData(
+            name: 'Proyecto de prueba',
+            description: null,
+            status: 'pending',
+            companyId: $company->id,
+            budget: '2500',
+        );
 
         try {
-            $data = new CreateProjectData(
-                name: 'Proyecto de prueba',
-                description: null,
-                status: 'pending',
-                companyId: $company->id,
-                budget: '2500',
-            );
+            app(CreateProjectAction::class)->execute($data);
 
-            try {
-                app(CreateProjectAction::class)->execute($data);
-
-                $this->fail('Se esperaba un error al crear el presupuesto.');
-            } catch (QueryException $exception) {
-                // El error es esperado: la inserción del presupuesto falló.
-            }
-
-            $this->assertDatabaseMissing('projects', [
-                'name' => 'Proyecto de prueba',
-                'company_id' => $company->id,
-            ]);
-
-            $this->assertDatabaseCount('budgets', 0);
-        } finally {
-            DB::statement('DROP TRIGGER IF EXISTS fail_budget_insert');
+            $this->fail('Se esperaba un error al crear el presupuesto.');
+        } catch (QueryException $exception) {
+            // El error es esperado: la inserción del presupuesto falló.
         }
+
+        $this->assertDatabaseMissing('projects', [
+            'name' => 'Proyecto de prueba',
+            'company_id' => $company->id,
+        ]);
+
+        $this->assertDatabaseCount('budgets', 0);
+    } finally {
+        DB::statement('DROP TRIGGER IF EXISTS fail_budget_insert');
     }
+}
 
     public function test_project_cannot_have_two_budgets(): void
     {
