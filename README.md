@@ -120,7 +120,7 @@ Las Policies aplican los permisos correspondientes según el rol del usuario en 
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/construction_backend.git
+git clone https://github.com/T0-Bo/construction_backend.git
 cd construction_backend
 ```
 
@@ -179,8 +179,6 @@ The API will be available at:
 ```text
 http://localhost:8080/api
 ```
-
-The Nginx container exposes port `8080` on the host.
 
 The Nginx container exposes port `8080` on the host.
 
