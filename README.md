@@ -46,6 +46,109 @@ The `active.company` middleware validates:
 
 Policies enforce permissions according to the user's company role.
 
+### Database Entity Relationship Diagram
+
+The following diagram illustrates the main database entities and their relationships, including the multi-tenant company structure.
+
+```mermaid
+erDiagram
+    USERS {
+        bigint id PK
+        string name
+        string email UK
+        timestamp email_verified_at
+    }
+
+    COMPANIES {
+        bigint id PK
+        string name
+        string email UK
+    }
+
+    COMPANY_USER {
+        bigint company_id PK, FK
+        bigint user_id PK, FK
+        string role
+        string status
+    }
+
+    PERSONAL_ACCESS_TOKENS {
+        bigint id PK
+        bigint tokenable_id
+        string tokenable_type
+        bigint active_company_id FK
+        string name
+        string token UK
+    }
+
+    PROJECTS {
+        bigint id PK
+        bigint company_id FK
+        string name
+        string status
+        timestamp deleted_at
+    }
+
+    BUDGETS {
+        bigint id PK
+        bigint project_id FK, UK
+        decimal amount
+    }
+
+    REPORTS {
+        bigint id PK
+        bigint project_id FK
+        bigint requested_by FK
+        string status
+    }
+
+    COMPANY_INVITATIONS {
+        bigint id PK
+        bigint company_id FK
+        bigint invited_by FK
+        string email
+        string role
+        string status
+        string token_hash UK
+        timestamp expires_at
+    }
+
+    AUDIT_LOGS {
+        bigint id PK
+        bigint company_id FK
+        bigint user_id FK
+        string action
+        string auditable_type
+        bigint auditable_id
+    }
+
+    NOTIFICATIONS {
+        uuid id PK
+        string type
+        bigint notifiable_id
+        string notifiable_type
+        text data
+        timestamp read_at
+    }
+
+    USERS ||--o{ COMPANY_USER : membership
+    COMPANIES ||--o{ COMPANY_USER : has_members
+
+    COMPANIES o|--o{ PROJECTS : owns
+    PROJECTS ||--o| BUDGETS : has
+    PROJECTS ||--o{ REPORTS : generates
+
+    USERS o|--o{ REPORTS : requests
+
+    COMPANIES ||--o{ COMPANY_INVITATIONS : receives
+    USERS o|--o{ COMPANY_INVITATIONS : invites
+
+    COMPANIES ||--o{ AUDIT_LOGS : records
+    USERS o|--o{ AUDIT_LOGS : performs
+
+    COMPANIES o|--o{ PERSONAL_ACCESS_TOKENS : selected_by
+```
+
 ## Technology Stack
 
 - PHP 8.5
