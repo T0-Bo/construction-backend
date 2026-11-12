@@ -211,6 +211,52 @@ El middleware `active.company` valida:
 Las Policies aplican los permisos correspondientes según el rol del usuario en cada empresa.
 
 ---
+### Colección de Postman
+
+El repositorio incluye una colección de Postman para probar la API sin necesidad de desarrollar un frontend.
+
+#### Importar la colección y el entorno
+
+1. Abrir Postman.
+2. Seleccionar **Import**.
+3. Importar los dos archivos de `docs/postman/`:
+   - `Construction Backend API.postman_collection.json`
+   - `Construction Backend - Local.postman_environment.json`
+4. Seleccionar el entorno **Construction Backend - Local**.
+
+#### Configurar el entorno
+
+Editar la variable `base_url` y reemplazar `YOUR_VM_IP` por la dirección IP de la máquina donde se ejecuta Docker.
+
+Por ejemplo:
+
+- Docker en la misma máquina que Postman: `http://localhost:8080/api`.
+- Docker en una máquina virtual: `http://IP_DE_TU_VM:8080/api`.
+
+El entorno contiene las siguientes variables:
+
+| Variable | Descripción |
+|---|---|
+| `base_url` | URL base de la API |
+| `token` | Token de autenticación de Laravel Sanctum |
+| `company_id` | ID de la empresa seleccionada |
+| `project_id` | ID de un proyecto |
+| `report_id` | ID de un reporte generado |
+
+#### Autenticación y pruebas
+
+1. Registrar un usuario mediante `POST /register` o utilizar una cuenta existente.
+2. Verificar el correo electrónico mediante el enlace guardado en los logs de Laravel.
+3. Iniciar sesión mediante `POST /login`.
+4. Configurar la variable `token` con el token Sanctum devuelto, si no se completa automáticamente.
+5. Consultar `GET /my-companies` para obtener las empresas del usuario.
+6. Configurar `company_id` y seleccionar la empresa mediante `POST /companies/{company}/select`.
+7. Utilizar la carpeta Projects para crear o consultar un proyecto y configurar `project_id`.
+8. Utilizar la carpeta Reports para solicitar un reporte y configurar `report_id` con el ID devuelto.
+
+Las solicitudes protegidas heredan la autenticación Bearer Token configurada en la colección mediante `{{token}}`.
+
+**Importante:** El entorno publicado es una plantilla sin credenciales ni tokens personales. Cada usuario debe configurar su propia URL y token de autenticación.
 
 ## Requirements
 
@@ -306,6 +352,53 @@ The default mail configuration uses `MAIL_MAILER=log`. Emails are written to the
 For production deployments, configure appropriate credentials, disable debug mode, and use a real mail provider.
 
 ---
+## Postman Collection
+
+The repository includes a Postman collection to test the API without implementing a frontend.
+
+### Import the collection and environment
+
+1. Open Postman.
+2. Click **Import**.
+3. Import both files from `docs/postman/`:
+   - `Construction Backend API.postman_collection.json`
+   - `Construction Backend - Local.postman_environment.json`
+4. Select the imported environment, **Construction Backend - Local**.
+
+### Configure the environment
+
+Edit the `base_url` variable and replace `YOUR_VM_IP` with the IP address of the machine running Docker.
+
+For example:
+
+- Docker running on the same machine as Postman: `http://localhost:8080/api`.
+- Docker running inside a virtual machine: `http://YOUR_VM_IP:8080/api`.
+
+The environment includes the following variables:
+
+| Variable | Description |
+|---|---|
+| `base_url` | API base URL |
+| `token` | Laravel Sanctum authentication token |
+| `company_id` | Selected company ID |
+| `project_id` | Project ID |
+| `report_id` | Generated report ID |
+
+### Authentication and testing
+
+1. Register a user using `POST /register`, or use an existing account.
+2. Verify the email address using the verification link written to the Laravel log.
+3. Log in using `POST /login`.
+4. Set the returned Sanctum token in the `token` environment variable if it is not populated automatically.
+5. Use `GET /my-companies` to retrieve the user's companies.
+6. Set `company_id` and select a company using `POST /companies/{company}/select`.
+7. Use the Projects folder to create or retrieve a project and set `project_id`.
+8. Use the Reports folder to request a report and set `report_id` to the returned report ID.
+
+Protected requests inherit Bearer Token authentication from the collection using `{{token}}`.
+
+**Important:** The exported environment is a template and does not contain authentication credentials or personal tokens. Each user must configure their own API URL and authentication token.
+
 
 ## API Endpoints
 
